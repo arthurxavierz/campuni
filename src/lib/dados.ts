@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { SEMENTES } from '../demo/sementes';
+import { SUPABASE_ANON, SUPABASE_URL } from './config';
 import { blobParaDataUrl } from './imagem';
 import { guardado } from './guardado';
 import type { FotoProcessada, NovaPublicacao, Publicacao, StatusPublicacao } from './tipos';
@@ -22,8 +23,10 @@ import type { FotoProcessada, NovaPublicacao, Publicacao, StatusPublicacao } fro
  * volume real bastar.
  */
 
-const URL_SUPABASE = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const CHAVE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+// VITE_SUPABASE_URL=local força o modo local (sem banco), útil para desenvolver offline.
+const forcarLocal = import.meta.env.VITE_SUPABASE_URL === 'local';
+const URL_SUPABASE = forcarLocal ? undefined : ((import.meta.env.VITE_SUPABASE_URL as string | undefined) || SUPABASE_URL);
+const CHAVE_ANON = forcarLocal ? undefined : ((import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || SUPABASE_ANON);
 const COM_EXEMPLOS = import.meta.env.VITE_EXEMPLOS !== 'nao';
 
 export const modoLocal = !URL_SUPABASE || !CHAVE_ANON;
@@ -286,22 +289,41 @@ export interface Contato {
 }
 
 /**
- * Formulários públicos vão para a função /api/contato, que grava com a
- * service_role. O visitante não tem permissão de escrita nessas tabelas.
- * Rodando só o Vite (sem a função), o envio é aceito localmente.
+ * Contato, denúncia e novidades.
+ *
+ * Com banco: a função `registrar_contato` (0006) valida e grava. O
+ * visitante não tem permissão de escrita direta na tabela `contatos`,
+ * nem de leitura: só o administrador lê.
+ * Sem banco: tenta a função /api/contato do Netlify; rodando só o Vite,
+ * aceita localmente.
  */
 export async function enviarContato(dados: Contato): Promise<void> {
+  if (dados.empresa) return; // robô preencheu o campo invisível
+  if (!modoLocal) {
+    const db = await supabase();
+    const { error } = await db.rpc('registrar_contato', {
+      p_tipo: dados.tipo,
+      p_nome: dados.nome ?? null,
+      p_email: dados.email ?? null,
+      p_whatsapp: dados.whatsapp ?? null,
+      p_assunto: dados.assunto ?? null,
+      p_mensagem: dados.mensagem ?? null,
+      p_publicacao: dados.publicacaoId && UUID.test(dados.publicacaoId) ? dados.publicacaoId : null,
+      p_pagina: window.location.pathname,
+    });
+    if (error) throw new Error(error.message.includes('limite') ? 'Muitos envios seguidos. Aguarde um pouco.' : 'Não foi possível enviar agora. Tente pelo WhatsApp.');
+    return;
+  }
   try {
     const r = await fetch('/api/contato', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...dados, pagina: window.location.pathname }),
     });
-    if (r.status === 404 && modoLocal) return;
+    if (r.status === 404) return;
     const corpo = (await r.json().catch(() => ({}))) as { erro?: string };
     if (!r.ok) throw new Error(corpo.erro ?? 'Não foi possível enviar agora.');
-  } catch (e) {
-    if (modoLocal) return;
-    throw e;
+  } catch {
+    /* sem servidor: aceito localmente */
   }
 }
