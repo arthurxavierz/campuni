@@ -95,7 +95,6 @@ export function Cartao({ pub, indice = 0, previa, novo }: Props) {
           )}
           <SeloTipo tipo={pub.tipo} />
         </div>
-        {pub.exemplo && <span className="exemplo">exemplo</span>}
         {pub.fotos.length > 1 && (
           <span className="contagem"><Camera className="ico" />{pub.fotos.length}</span>
         )}

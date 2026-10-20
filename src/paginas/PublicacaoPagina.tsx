@@ -116,7 +116,6 @@ export function PublicacaoPagina() {
             {pub.destaque && <span className="selo destaque"><Star className="ico" />Perfil em destaque</span>}
             <SeloTipo tipo={pub.tipo} />
             <span className="selo ativa">Ativa</span>
-            {pub.exemplo && <span className="selo procura">exemplo</span>}
           </div>
           <h1>{pub.titulo}</h1>
           <Preco pub={pub} />

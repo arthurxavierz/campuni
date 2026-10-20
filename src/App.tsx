@@ -3,9 +3,11 @@ import { createBrowserRouter, createMemoryRouter, RouterProvider } from 'react-r
 import { Layout } from './componentes/Layout';
 import { ComoFunciona } from './paginas/ComoFunciona';
 import { Contato } from './paginas/Contato';
+import { Entrar } from './paginas/Entrar';
 import { Explorar } from './paginas/Explorar';
 import { NaoEncontrada, Privacidade, Termos } from './paginas/Legais';
 import { PublicacaoPagina } from './paginas/PublicacaoPagina';
+import { MinhaConta } from './paginas/MinhaConta';
 import { Publicar } from './paginas/Publicar';
 import { Sobre } from './paginas/Sobre';
 
@@ -28,6 +30,9 @@ const rotas = criar([
       { path: '/salvos', element: <Explorar modo="salvos" key="salvos" /> },
       { path: '/publicacoes/:id', element: <PublicacaoPagina /> },
       { path: '/publicar', element: <Publicar /> },
+      { path: '/entrar', element: <Entrar key="entrar" /> },
+      { path: '/cadastro', element: <Entrar inicial="cadastro" key="cadastro" /> },
+      { path: '/minha-conta', element: <MinhaConta /> },
       { path: '/como-funciona', element: <ComoFunciona /> },
       { path: '/sobre', element: <Sobre /> },
       { path: '/contato', element: <Contato /> },

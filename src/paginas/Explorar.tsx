@@ -1,11 +1,12 @@
-import { ArrowRight, LayoutGrid, List, Plus, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { ArrowRight, LayoutGrid, List, Plus, SlidersHorizontal, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Cartao, GradeEsqueleto } from '../componentes/Cartao';
 import { Contador } from '../componentes/Contador';
 import { Gaveta } from '../componentes/Gaveta';
-import { Lavoura } from '../componentes/Lavoura';
+import { Esteira } from '../componentes/Esteira';
+import { HeroCampuni } from '../componentes/HeroCampuni';
 import { Perguntas } from '../componentes/Perguntas';
 import { VideoExplicativo } from '../componentes/VideoExplicativo';
 import { CATEGORIAS, UFS, nomeCategoria } from '../lib/categorias';
@@ -14,7 +15,6 @@ import { transicao } from '../lib/efeitos';
 import { useEstado } from '../lib/estado';
 import { lerValor, normalizar } from '../lib/formato';
 import { guardado } from '../lib/guardado';
-import { SITE } from '../lib/site';
 import type { Ordem, Publicacao } from '../lib/tipos';
 
 type Modo = 'explorar' | 'alta' | 'destaque' | 'salvos';
@@ -34,7 +34,6 @@ const PERIODOS = [
   { valor: '15', rotulo: '15 dias' },
   { valor: '30', rotulo: '30 dias' },
 ];
-const SUGESTOES = ['drone', 'calcário', 'novilhas', 'tratorista', 'pivô'];
 
 const CABECAS: Record<Exclude<Modo, 'explorar'>, { rotulo: string; titulo: string; texto: string }> = {
   alta: { rotulo: 'Em alta', titulo: 'O que mais chamou atenção esta semana.', texto: 'Ordenado pelo interesse: quem salvou, curtiu e chamou no WhatsApp.' },
@@ -156,52 +155,25 @@ export function Explorar({ modo = 'explorar' }: { modo?: Modo }) {
 
   return (
     <>
+      {modo === 'explorar' && (
+        <>
+          <HeroCampuni
+            busca={busca}
+            aoDigitar={setBusca}
+            aoBuscar={(termo) => {
+              const t = (termo ?? busca).trim();
+              if (termo) setBusca(termo);
+              definir({ q: t || null });
+              rolarParaResultados();
+            }}
+            total={todas?.length ?? null}
+            cidades={todas ? cidades : null}
+          />
+          {todas && <Esteira pubs={todas} />}
+        </>
+      )}
       <div className="container">
-        {modo === 'explorar' ? (
-          <section className="hero">
-            <Lavoura />
-            <div className="hero-dentro">
-              <span className="sobrelinha"><i className="pulso" />O agro acontece perto de você</span>
-              <h1 aria-label={SITE.tagline}>
-                {SITE.tagline.split(' ').map((p, i) => (
-                  <span key={i}>
-                    <span className="palavra" style={{ animationDelay: `${0.12 + i * 0.07}s` }}>{p}</span>{' '}
-                  </span>
-                ))}
-              </h1>
-              <p className="apoio">{SITE.apoio} Publique em 2 minutos, sem pagar nada.</p>
-              <form
-                className="busca"
-                role="search"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  definir({ q: busca.trim() || null });
-                  rolarParaResultados();
-                }}
-              >
-                <Search className="ico" />
-                <label className="sr" htmlFor="busca">Buscar oportunidades</label>
-                <input id="busca" type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Drone, calcário, novilhas, tratorista…" autoComplete="off" />
-                <button className="btn btn-primario btn-p">Buscar</button>
-              </form>
-              <div className="busca-sugestoes">
-                <span>Buscados agora:</span>
-                {SUGESTOES.map((s) => (
-                  <button key={s} type="button" onClick={() => { setBusca(s); definir({ q: s }); rolarParaResultados(); }}>{s}</button>
-                ))}
-              </div>
-              <div className="hero-numeros">
-                <span><b>{todas?.length ?? '–'}</b>oportunidades ativas</span>
-                <span><b>{todas ? cidades : '–'}</b>cidades</span>
-                <span><b>16</b>categorias</span>
-              </div>
-              <div className="hero-acoes">
-                <Link to="/publicar" className="btn btn-ouro"><Plus className="ico" /> Publicar oportunidade</Link>
-                <Link to="/como-funciona#video" className="btn btn-vidro"><Sparkles className="ico" /> Ver como funciona</Link>
-              </div>
-            </div>
-          </section>
-        ) : (
+        {modo !== 'explorar' && (
           <div className="pagina-topo" style={{ paddingBottom: 0 }}>
             <span className="rotulo">{CABECAS[modo].rotulo}</span>
             <h1>{CABECAS[modo].titulo}</h1>

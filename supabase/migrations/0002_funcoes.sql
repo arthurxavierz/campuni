@@ -96,7 +96,8 @@ $$;
 
 -- A vitrine: o que a página pública lê. Só ativas e dentro da validade.
 -- security_invoker para respeitar as políticas de RLS de quem consulta.
-create or replace view vitrine with (security_invoker = true) as
+drop view if exists vitrine;
+create view vitrine with (security_invoker = true) as
 select
   p.id, p.tipo, p.categoria, p.titulo, p.descricao, p.preco, p.unidade, p.quantidade,
   p.cidade, p.uf, p.curtidas, p.visualizacoes,

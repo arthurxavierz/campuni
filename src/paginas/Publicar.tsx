@@ -1,11 +1,13 @@
-import { ArrowLeft, Check, HandCoins, Info, Lock, Search as Procura, ShieldCheck, Upload, X, Zap } from 'lucide-react';
+import { ArrowLeft, Check, HandCoins, Info, Search as Procura, ShieldCheck, Upload, X, Zap } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Cartao } from '../componentes/Cartao';
 import { IconeWhatsApp } from '../componentes/IconesProprios';
 import { CATEGORIAS, UFS, UNIDADES } from '../lib/categorias';
-import { confirmarCodigo, enviarCodigo, entrarComGoogle, modoDemo, publicar, sessaoAtiva } from '../lib/dados';
+import { FormularioConta } from '../componentes/FormularioConta';
+import { useConta } from '../lib/conta';
+import { publicar } from '../lib/dados';
 import { confete } from '../lib/efeitos';
 import { useEstado } from '../lib/estado';
 import { lerValor, mascaraTelefone, tamanho } from '../lib/formato';
@@ -76,8 +78,21 @@ export function Publicar() {
   const [pedirLogin, setPedirLogin] = useState(false);
   const [rascunhoSalvo, setRascunhoSalvo] = useState(false);
   const { recado } = useEstado();
+  const { usuario } = useConta();
   const navegar = useNavigate();
   const topo = useRef<HTMLDivElement>(null);
+
+  // Conta conhecida: preenche nome, WhatsApp e cidade sem pedir de novo.
+  useEffect(() => {
+    if (!usuario) return;
+    setR((a) => ({
+      ...a,
+      autor: a.autor || usuario.nome,
+      whatsapp: a.whatsapp || mascaraTelefone(usuario.whatsapp),
+      cidade: a.cidade || usuario.cidade,
+      uf: a.cidade ? a.uf : usuario.uf || a.uf,
+    }));
+  }, [usuario]);
 
   useEffect(() => {
     document.title = 'Publicar oportunidade · Campuni';
@@ -143,11 +158,18 @@ export function Publicar() {
   const avancar = async () => {
     if (!validar(etapa)) return;
     if (etapa < 3) return irPara(etapa + 1);
-    if (!(await sessaoAtiva())) return setPedirLogin(true);
+    if (!usuario) return setPedirLogin(true);
     await concluir();
   };
 
+  // Entrou ou criou a conta no último passo: publica na sequência.
+  useEffect(() => {
+    if (pedirLogin && usuario && !enviando && !publicada) concluir();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedirLogin, usuario]);
+
   const concluir = async () => {
+    if (!usuario) return setPedirLogin(true);
     setEnviando(true);
     try {
       const pub = await publicar(
@@ -166,6 +188,7 @@ export function Publicar() {
           validadeDias: r.validade,
         },
         fotos,
+        usuario.id,
       );
       guardado.gravar('rascunho', null);
       setPublicada(pub);
@@ -204,7 +227,7 @@ export function Publicar() {
           <svg className="selo-ok" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" /><path d="M30 52l14 14 26-30" /></svg>
           <h1>Oportunidade publicada</h1>
           <p>
-            Seu anúncio já aparece no topo da busca{modoDemo ? ' (neste navegador, porque este é o protótipo)' : ''}.
+            Seu anúncio já aparece no topo da busca. Acompanhe visualizações e renove pela sua conta.
             Compartilhe no WhatsApp para alcançar mais gente da região.
           </p>
           <div style={{ width: 260 }}><Cartao pub={publicada} previa /></div>
@@ -373,7 +396,12 @@ export function Publicar() {
                 <ShieldCheck className="ico" />
                 <span>Seu número não aparece escrito na página: ele só é usado pelo botão do WhatsApp. Ao publicar, você concorda com os <Link to="/termos">termos de uso</Link>.</span>
               </div>
-              {pedirLogin && <Entrar aoEntrar={concluir} />}
+              {pedirLogin && !usuario && (
+                <FormularioConta compacta inicial="cadastro" voltarPara="/publicar" sugestao={{ nome: r.autor, whatsapp: r.whatsapp, cidade: r.cidade, uf: r.uf }} />
+              )}
+              {usuario && (
+                <div className="aviso ok"><Check className="ico" /><span>Publicando como <b>{usuario.nome}</b> ({usuario.email}).</span></div>
+              )}
             </section>
           )}
 
@@ -434,69 +462,5 @@ function ZonaSoltar({ aoReceber, desativada }: { aoReceber: (f: FileList) => voi
         }}
       />
     </>
-  );
-}
-
-/** Entrada no fim do fluxo: Google ou código de 6 dígitos no e-mail, como o Campuni já faz. */
-function Entrar({ aoEntrar }: { aoEntrar: () => void }) {
-  const [email, setEmail] = useState('');
-  const [codigo, setCodigo] = useState('');
-  const [fase, setFase] = useState<'email' | 'codigo'>('email');
-  const [erro, setErro] = useState('');
-  const [ocupado, setOcupado] = useState(false);
-
-  const pedir = async () => {
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setErro('Confira o e-mail digitado.');
-    setOcupado(true);
-    setErro('');
-    try {
-      await enviarCodigo(email.trim().toLowerCase());
-      setFase('codigo');
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Não foi possível enviar o código.');
-    } finally {
-      setOcupado(false);
-    }
-  };
-  const confirmar = async () => {
-    setOcupado(true);
-    setErro('');
-    try {
-      await confirmarCodigo(email.trim().toLowerCase(), codigo.trim());
-      aoEntrar();
-    } catch {
-      setErro('Código inválido ou vencido. Confira o e-mail ou peça outro.');
-    } finally {
-      setOcupado(false);
-    }
-  };
-
-  return (
-    <div className="formulario" style={{ boxShadow: 'none' }}>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-        <Lock className="ico" style={{ color: 'var(--oliva)' }} />
-        <b style={{ color: 'var(--tinta)' }}>Último passo: confirme que é você</b>
-      </div>
-      <p style={{ margin: 0, color: 'var(--apagado)', fontSize: 14 }}>Seu anúncio está pronto. Entre para publicar e poder editar, renovar ou tirar do ar depois.</p>
-      <button className="btn btn-contorno" onClick={() => entrarComGoogle('/publicar')}>Continuar com Google</button>
-      {fase === 'email' ? (
-        <>
-          <div className="campo">
-            <label htmlFor="login-email">Ou receba um código por e-mail</label>
-            <input id="login-email" type="email" className="entrada" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="seu@email.com" autoComplete="email" />
-          </div>
-          <button className="btn btn-primario" onClick={pedir} disabled={ocupado}>Receber código por e-mail</button>
-        </>
-      ) : (
-        <>
-          <div className="campo">
-            <label htmlFor="login-codigo">Código enviado para {email}</label>
-            <input id="login-codigo" className="entrada codigo" inputMode="numeric" maxLength={6} value={codigo} onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))} autoComplete="one-time-code" />
-          </div>
-          <button className="btn btn-primario" onClick={confirmar} disabled={ocupado || codigo.length < 6}>Confirmar e publicar</button>
-        </>
-      )}
-      {erro && <span className="msg-erro">{erro}</span>}
-    </div>
   );
 }

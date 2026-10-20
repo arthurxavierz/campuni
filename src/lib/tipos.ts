@@ -1,4 +1,5 @@
 export type TipoPublicacao = 'oferta' | 'procura';
+export type StatusPublicacao = 'ativa' | 'pausada' | 'removida';
 
 export interface Publicacao {
   id: string;
@@ -13,6 +14,9 @@ export interface Publicacao {
   cidade: string;
   uf: string;
   autor: string;
+  autorId?: string;
+  status?: StatusPublicacao;
+  visualizacoes?: number;
   /** Só aparece no WhatsApp. Nunca listado em texto na vitrine. */
   whatsapp?: string;
   destaque: boolean;
@@ -51,3 +55,24 @@ export interface FotoProcessada {
 }
 
 export type Ordem = 'relevantes' | 'recentes' | 'expiram' | 'menor-preco' | 'maior-preco';
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  whatsapp: string;
+  cidade: string;
+  uf: string;
+  avatar?: string;
+  provedor: 'email' | 'google';
+  criadoEm: string;
+}
+
+export interface Cadastro {
+  nome: string;
+  email: string;
+  senha: string;
+  whatsapp: string;
+  cidade: string;
+  uf: string;
+}

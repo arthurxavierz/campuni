@@ -9,4 +9,6 @@ interface ImportMetaEnv {
   readonly VITE_INSTAGRAM?: string;
   readonly VITE_VIDEO_URL?: string;
   readonly VITE_ROTEADOR?: 'memoria';
+  readonly VITE_GOOGLE?: 'sim';
+  readonly VITE_EXEMPLOS?: 'nao';
 }
