@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /publicar
+Sitemap: https://campuni.achillesmedia.com.br/sitemap.xml

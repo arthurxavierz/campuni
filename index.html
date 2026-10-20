@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <title>Campuni · Oportunidades que aproximam o campo</title>
+    <meta name="description" content="Ofertas e demandas do agro por categoria, região e validade. Publique grátis e receba contatos direto no WhatsApp." />
+    <meta name="theme-color" content="#556B3E" />
+    <meta property="og:title" content="Campuni" />
+    <meta property="og:description" content="Tudo que está sendo oferecido e procurado no agro da sua região, em um só lugar." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" />
+    <script>
+      // Tema escolhido antes do primeiro pintar a tela, para não piscar.
+      try { var t = localStorage.getItem('campuni:tema'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="raiz"></div>
+    <noscript>O Campuni precisa de JavaScript ligado para funcionar.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

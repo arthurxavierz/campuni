@@ -1,0 +1,11 @@
+{
+  "name": "Campuni",
+  "short_name": "Campuni",
+  "description": "Ofertas e demandas do agro por categoria, região e validade.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F5",
+  "theme_color": "#556B3E",
+  "lang": "pt-BR",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
