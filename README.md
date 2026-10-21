@@ -1,6 +1,6 @@
 # Campuni · redesign
 
-Protótipo do novo **Campuni**, o marketplace de ofertas e demandas do agro:
+Novo **Campuni**, o marketplace de ofertas e demandas do agro:
 quem oferece e quem procura, por categoria, região e validade, com a
 conversa indo direto para o WhatsApp.
 
@@ -36,10 +36,32 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-Sem variáveis, abre em **modo demonstração**: as seis publicações que
-estavam no ar no Campuni em 20/10/2026 (com ilustrações no lugar das
-fotos, que são de quem anunciou) e alguns exemplos marcados como tal. O
-que o visitante publica fica só no navegador dele.
+O site já aponta para o Supabase do Campuni (projeto `campuni`, org
+gratuita **Campuni**). URL e chave pública ficam em `src/lib/config.ts`;
+a chave anon é feita para o navegador e tudo que ela faz passa pelas
+políticas de RLS.
+
+Para rodar sem banco (contas e anúncios guardados no navegador):
+
+```bash
+VITE_SUPABASE_URL=local npm run dev
+```
+
+## Contas
+
+- **Cadastro** com nome, e-mail, senha, WhatsApp e cidade (`/cadastro`).
+  A conta fica ativa na hora (confirmação de e-mail desligada no Supabase,
+  porque o envio padrão de e-mails do Supabase só manda poucos por hora).
+- **Entrar** e **Esqueci minha senha** (`/entrar`).
+- **Minha conta** (`/minha-conta`): meus anúncios com visualizações,
+  curtidas e validade; renovar, pausar, reativar e excluir; perfil e senha.
+- **Publicar** pede a conta só no último passo, já com os dados preenchidos.
+- **Google:** o código está pronto e o botão aparece com `VITE_GOOGLE=sim`
+  no Netlify, depois de ligar o provedor Google no Supabase (ver DEPLOY.md).
+
+A vitrine mostra as publicações do banco e, junto, as publicações de
+abertura de `src/demo/sementes.ts`. Desligue com `VITE_EXEMPLOS=nao`
+quando o volume real bastar.
 
 ## Como está organizado
 
@@ -50,7 +72,8 @@ src/
 ├── componentes/      Cabeçalho, Rodapé, Cartão, Mídia, Gaveta, Vídeo, Lavoura…
 ├── lib/
 │   ├── site.ts       Contato, redes, textos institucionais. Fonte única.
-│   ├── dados.ts      Demonstração ou Supabase atrás da mesma interface.
+│   ├── dados.ts      Supabase (ou modo local) atrás da mesma interface.
+│   ├── conta.tsx     Cadastro, login, senha e perfil.
 │   ├── imagem.ts     Preparo das fotos no aparelho.
 │   └── categorias.ts As 16 categorias e as unidades do agro.
 ├── demo/             Publicações e ilustrações da demonstração.
@@ -68,8 +91,9 @@ supabase/migrations/  Banco, em ordem.
   celular no campo, menos armazenamento, e nenhuma foto quebrada na vitrine.
 - **Autoria pelo banco.** `autor_id` vem do `auth.uid()`; contadores,
   destaque e papel são protegidos por gatilho contra alteração pelo navegador.
-- **Formulário público sem permissão de escrita.** Contato e denúncia
-  passam pela função do Netlify com a service_role, com honeypot e limite por IP.
+- **Formulário público sem permissão de escrita.** Contato, denúncia e
+  novidades passam pela função `registrar_contato` do banco, que valida e
+  limita a frequência. Visitante não lê nem altera a tabela `contatos`.
 - **Endereço do anúncio preservado.** `/publicacoes/:id`, igual ao site atual:
   links já compartilhados continuam funcionando.
 
@@ -81,7 +105,7 @@ O que precisa ser confirmado com o Campuni antes de ir ao ar está em
 
 ## Stack
 
-`React 18` · `TypeScript` · `Vite` · `React Router` · `Supabase` · `Netlify Functions` · `Cloudflare`
+`React 18` · `TypeScript` · `Vite` · `React Router` · `Supabase Auth + Postgres + Storage` · `Netlify` · `Cloudflare` · `Anton + Manrope`
 
 ---
 

@@ -101,3 +101,31 @@ ignora todas as permissões do banco e iria para o navegador de quem abre o site
 - [ ] `/publicacoes/qualquer-coisa` mostra "não está mais no ar" (as rotas do app funcionam).
 - [ ] Formulário de contato responde "Mensagem enviada".
 - [ ] No celular, a barra inferior aparece e o botão Publicar abre o fluxo.
+
+
+---
+
+## Estado atual (20/10/2026)
+
+| Peça | Situação |
+| --- | --- |
+| GitHub | `arthurxavierz/campuni`, branch `main` |
+| Netlify | projeto `campuni-achilles`, publica a cada push |
+| Cloudflare | `CNAME campuni → campuni-achilles.netlify.app`, proxy ligado |
+| Supabase | org gratuita **Campuni**, projeto `campuni` (`ppbblwxiacuvnfgkumfp`), migrations 0001 a 0006 aplicadas |
+| Auth | e-mail e senha ligados, confirmação de e-mail desligada, URLs de retorno do domínio, do Netlify e do localhost |
+
+Projeto gratuito do Supabase **pausa depois de 7 dias sem acesso**. Se
+pausar, é só abrir o painel e clicar em *Restore*.
+
+## Ligar "Continuar com Google"
+
+1. Google Cloud Console → crie um projeto → **APIs e serviços → Tela de
+   consentimento OAuth** (externo, nome "Campuni").
+2. **Credenciais → Criar credenciais → ID do cliente OAuth → Aplicativo da Web**.
+   Em *URIs de redirecionamento autorizados*:
+   `https://ppbblwxiacuvnfgkumfp.supabase.co/auth/v1/callback`
+3. Supabase → **Authentication → Sign In / Providers → Google**: ligue e
+   cole o *Client ID* e o *Client Secret*.
+4. Netlify → variável `VITE_GOOGLE=sim` → refaça o deploy. O botão aparece
+   em Entrar, Criar conta e no último passo de Publicar.
