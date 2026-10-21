@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useEstado } from '../lib/estado';
@@ -32,7 +32,13 @@ export function Recado() {
  */
 export function AvisoCookies() {
   const [visto, setVisto] = useState(() => guardado.ler('cookies', false));
-  if (visto) return null;
+  // Espera a abertura do hero terminar antes de aparecer.
+  const [pronto, setPronto] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setPronto(true), 3500);
+    return () => window.clearTimeout(t);
+  }, []);
+  if (visto || !pronto) return null;
   return (
     <div className="cookies" role="region" aria-label="Aviso de cookies">
       <p>
